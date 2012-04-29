@@ -2,7 +2,9 @@
   (:use  [opentransact.core]
          [bux.currency]))
 
-(deftype MemoryAsset [url currency]
+
+
+(deftype MemoryAsset [url data currency]
   Asset
     (asset-url [_] url)
 
@@ -10,9 +12,6 @@
       (asset-request this params))
 
     (authorize [this params] 
-      (asset-request this (assoc params :client_id client_id :response_type "code" )))
+      (asset-request this params))
 
-    (transfer! [this params] 
-      (client/post url {  :headers 
-                            {"Authorization" (str "Bearer " token)}
-                          :form-data params})))
+    (transfer! [this params] ))

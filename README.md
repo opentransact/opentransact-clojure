@@ -4,7 +4,7 @@ Clojure library for interacting with and creating [OpenTransact](http://opentran
 
 ## Usage
 
-  (use 'opentransact.core)
+    (use 'opentransact.core)
 
 The Asset protocol contains the following 4 functions:
 
@@ -19,27 +19,30 @@ However internal assets can be created adhearing to the same Asset protocol that
 
 Transfer directly:
 
-  (transfer asset {:to "AAAA" :amount 20M :note "For tomatos"})
-  => {:xid "http://asset.com/transactions/123123123" :from "BBBB" :to "AAAA" :amount 20M :note "For tomatos"}
+    (transfer asset {:to "AAAA" :amount 20M :note "For tomatos"})
+    => {:xid "http://asset.com/transactions/123123123" :from "BBBB" :to "AAAA" :amount 20M :note "For tomatos"}
 
 Create a Transfer Request for a html link or redirection:
 
-  (request asset {:to "AAAA" :amount 20M :note "For tomatos"})
-  => "http://asset.com/usd?to=AAAA&amount=20&note=For%20tomatos"
+    (request asset {:to "AAAA" :amount 20M :note "For tomatos"})
+    => "http://asset.com/usd?to=AAAA&amount=20&note=For%20tomatos"
 
-  (authorize asset {:to "AAAA" :amount 20M :note "For tomatos"})
-  => "http://asset.com/usd?to=AAAA&amount=20&note=For%20tomatos&client_id=abcdefg"
+
+Create a Transfer Authorization Request for a html link or redirection:
+
+    (authorize asset {:to "AAAA" :amount 20M :note "For tomatos"})
+    => "http://asset.com/usd?to=AAAA&amount=20&note=For%20tomatos&client_id=abcdefg"
 
 Create an OpenTransact RemoteAsset asset type:
   
-  (use 'opentransact.client)
-  (def asset (ot-asset "http://asset.com/usd" { :client_id "abcdefg" :client_secret "ssh" :token "my-oauth-token" }))
+    (use 'opentransact.client)
+    (def asset (ot-asset "http://asset.com/usd" { :client_id "abcdefg" :client_secret "ssh" :token "my-oauth-token" }))
 
 ### Implementing your own OpenTransact asset.
 
 The plan is to have a handler:
 
-  opentransact.server/ot-handler
+    opentransact.server/ot-handler
 
 This will require a backend that will implement the above transfer and authorize multimethods locally.
 

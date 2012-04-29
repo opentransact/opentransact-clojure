@@ -9,4 +9,6 @@
                   [cheshire "4.0.0"]
                   [clj-time "0.3.7"]
                   [hiccup "1.0.0"]
-                  [clj-http "0.4.0"]])
+                  [clj-http "0.4.0"]]
+  :dev-dependencies 
+                  [[clj-http-fake "0.3.0"]])

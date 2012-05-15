@@ -24,26 +24,26 @@
     (is (= (request asset { :to "bob@sample.com" 
                             :from "alice@sample.com"
                             :amount 123
-                            :note "Thanks for this"})
+                            :note "Thanks for this" })
            "https://picomoney.com/dev_credits?note=Thanks+for+this&from=alice%40sample.com&to=bob%40sample.com&amount=123"))
     )
 
   (deftest opentransact-authorization-request
     (is (= (authorize asset { :to "bob@sample.com" 
-                            :from "alice@sample.com"
-                            :amount 123
-                            :note "Thanks for this"})
-           "https://picomoney.com/dev_credits?response_type=code&client_id=CLIENT&note=Thanks+for+this&from=alice%40sample.com&to=bob%40sample.com&amount=123"))
+                              :from "alice@sample.com"
+                              :amount 123
+                              :note "Thanks for this" })
+           "https://picomoney.com/dev_credits?client_id=CLIENT&response_type=code&redirect_uri=&amount=123&to=bob%40sample.com&from=alice%40sample.com&note=Thanks+for+this"))
     )
 
-  (deftest opentransact-authorization-request
+  (deftest opentransact-transfer
     (with-fake-routes
       {"https://picomoney.com/dev_credits" (fn [req] {:status 200 :headers {} :body "{\"tx_id\":\"ABCDEF\"}"}) }
 
         (is (= (transfer! asset { :to "bob@sample.com" 
-                                :from "alice@sample.com"
-                                :amount 123
-                                :note "Thanks for this"})
+                                  :from "alice@sample.com"
+                                  :amount 123
+                                  :note "Thanks for this"})
             {:tx_id "ABCDEF"}))
     ))
 

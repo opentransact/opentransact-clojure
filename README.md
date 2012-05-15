@@ -36,7 +36,7 @@ Create a Transfer Authorization Request for a html link or redirection:
 Create an OpenTransact RemoteAsset asset type:
   
     (use 'opentransact.client)
-    (def asset (ot-asset "http://asset.com/usd" { :client_id "abcdefg" :client_secret "ssh" :token "my-oauth-token" }))
+    (def asset (ot-asset "http://asset.com/usd" { :client-id "abcdefg" :client-secret "ssh" :token "my-oauth-token" :token-url "http://asset.com/token"}))
 
 ### Implementing your own OpenTransact asset.
 

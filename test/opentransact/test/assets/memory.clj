@@ -4,10 +4,10 @@
         [bux.currencies :only [$]])
   (:use [clojure.test]))
 
-(let  [ url "http://test.com"
-        asset (create-memory-asset url)]
+  (let  [ url "http://test.com"]
 
   (deftest empty-memory-asset
+    (let  [ asset (create-memory-asset url)]
 
     (is (:url asset) "http://test.com")
     (is (:currency asset) $)
@@ -18,11 +18,13 @@
       (is (= 0.00M (balance issuer)))
       (is (= 0.00M (reserved issuer)))
       (is ( :id issuer) "has account id")
-      (is (= (account asset (:id issuer)) issuer ))))
+      (is (= (account asset (:id issuer)) issuer )))))
 
   (deftest transfer-funds
 
-    (let  [ receipt (transfer! asset { :from "issuer" :to "bob" :amount 1.23M :note "Test payment" })
+    (let  [ asset (create-memory-asset url)
+            receipt (transfer! asset { :from "issuer" :to "bob" :amount 1.23M :note "Test payment" })
+            _ (prn receipt)
             issuer (issuer-account asset)
             bob    (account asset "bob")]
       (is (= (circulation asset) 1.23M))

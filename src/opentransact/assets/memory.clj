@@ -41,19 +41,15 @@
 
     (transfer! [this params] 
       (swap! accounts (fn [accs]
-        (let [  _ (prn accs)
-                _ (prn this)
-                from_id (params :from)
+        (let [  from_id (params :from)
                 to_id (params :to)
                 amount (currency (params :amount))
                 from (account this from_id) 
-                to (account this to_id) 
-                _ (prn "transfer!!!")]
+                to (account this to_id) ]
                 (let [
                   naccs (assoc accs 
                       from_id (assoc from :balance (- (balance from ) amount))
-                      to_id (assoc to :balance (+ (balance to ) amount)))
-                    _ (prn naccs)]
+                      to_id (assoc to :balance (+ (balance to ) amount)))]
                     naccs)
         )))))
 

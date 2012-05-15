@@ -7,12 +7,14 @@
 (defn account 
   "returns the account for given id"
   [asset id]
-  ((deref (.accounts asset)) id { :id id }))
+  (let [$ (.currency asset)]
+    ((deref (.accounts asset)) id { :id id :min-balance ($ 0M) :balance ($ 0M)})))
 
 (defn issuer-account 
   "returns the issuers account for current asset"
   [asset]
-  (account asset (.issuer asset)))
+  (let [$ (.currency asset)]
+    ((deref (.accounts asset)) (.issuer asset) { :id (.issuer asset) :min-balance ($ -10000M) :balance ($ 0M)})))
 
 (defn balance
   "balance of given account"
@@ -51,15 +53,19 @@
             to (account this to-id) 
             tx-id (str (java.util.UUID/randomUUID))
             receipt {:tx_id tx-id :from from-id :to to-id :amount amount :note note }]
-          (do
-            (alter accounts (fn [accs]
-                (let [
-                      naccs (assoc accs 
-                        from-id (assoc from :balance (- (balance from ) amount))
-                        to-id (assoc to :balance (+ (balance to ) amount)))]
-                    naccs )))
-            (alter transactions conj receipt)
-            receipt ))))
+          (if (>= (- (balance from) amount) (:min-balance from))
+            (do
+
+              (alter accounts (fn [accs]
+                  (let [
+                        naccs (assoc accs 
+                          from-id (assoc from :balance (- (balance from ) amount))
+                          to-id (assoc to :balance (+ (balance to ) amount)))]
+                      naccs )))
+              (alter transactions conj receipt)
+              receipt )
+            (throw (Exception. "Insufficient Funds"))
+            ))))
     ; )
 
   HistoricalAsset  
@@ -81,5 +87,7 @@
   ([url]
     (create-memory-asset url {} [] "issuer" $ ))
   ([url accounts transactions issuer currency]
-    (MemoryAsset. url (ref accounts) (ref transactions) issuer currency)))
+    (MemoryAsset. url (ref (assoc accounts issuer 
+                              { :id issuer :min-balance (currency -10000M) 
+                                :balance (currency 0M)})) (ref transactions) issuer currency)))
 

@@ -16,17 +16,15 @@
 
       (is issuer "has issuer account")
       (is (= 0.00M (balance issuer)))
+      (is (= -10000.00M (:min-balance issuer)))
+      (is (= 0.00M (balance issuer)))
       (is (= 0.00M (reserved issuer)))
-      (is ( :id issuer) "has account id")
-      (is (= (account asset (:id issuer)) issuer )))))
+      (is ( :id issuer) "has account id"))))
 
   (deftest transfer-funds
 
     (let  [ asset (create-memory-asset url)
             receipt (transfer! asset { :from "issuer" :to "bob" :amount 1.23M :note "Test payment" })
-            ; _ (prn receipt)
-            ; _ (prn (deref (.accounts asset)))
-            ; _ (prn (deref (.transactions asset))) 
             issuer (issuer-account asset)
             bob    (account asset "bob")]
       (is (= (circulation asset) 1.23M))
@@ -40,4 +38,16 @@
       (is (= (history asset "bob") [receipt] ))
       (is (= (history asset "issuer") [receipt] ))
       (is (= (history asset "alice") [] ))
-    )))
+
+      (try
+        (transfer! asset { :from "alice" :to "bob" :amount 1.23M :note "Test payment" })
+        (is false "could transfer funds below balance")
+        (catch Exception e
+          (is true "could not transfer funds")
+          )
+        )
+      (is (transfer! asset { :from "bob" :to "alice" :amount 1.23M :note "Test payment" }))
+    ))
+
+
+  )

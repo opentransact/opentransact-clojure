@@ -17,7 +17,21 @@
       (:body (client/post url  { :oauth-token token
                           :accept :json
                           :as :json
-                          :form-params params }))))
+                          :form-params params })))
+  HistoricalAsset
+    (find-transaction [this tx-id]
+        (:body (client/get (str url "/" tx-id) { :oauth-token token
+                                                  :accept :json
+                                                  :as :json })))
+
+    (history
+      [this] [])
+    (history [this account]
+        []
+    )
+
+    )
+
 
 (defn ot-asset 
   ([url options]

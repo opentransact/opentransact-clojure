@@ -7,12 +7,12 @@
 (defn account 
   "returns the account for given id"
   [asset id]
-  ((deref (:accounts asset)) id { :id id }))
+  ((deref (.accounts asset)) id { :id id }))
 
 (defn issuer-account 
   "returns the issuers account for current asset"
   [asset]
-  (account asset (:issuer asset)))
+  (account asset (.issuer asset)))
 
 (defn balance
   "balance of given account"
@@ -29,7 +29,8 @@
   [asset]
   (- (balance (issuer-account asset))))
 
-(defrecord MemoryAsset [url accounts issuer currency]
+(deftype MemoryAsset 
+  [url accounts transactions issuer currency]
   Asset
     (asset-url [_] url)
 
@@ -39,26 +40,46 @@
     (authorize [this params] 
       (asset-request this params))
 
-    (transfer! [this params] 
-      (swap! accounts (fn [accs]
-        (let [  from_id (params :from)
-                to_id (params :to)
-                amount (currency (params :amount))
-                from (account this from_id) 
-                to (account this to_id) ]
+    (transfer! [this { from-id :from
+                       to-id :to
+                       note :note
+                       raw-amount :amount }]
+      (dosync
+        (let [  
+            amount (currency raw-amount)
+            from (account this from-id) 
+            to (account this to-id) 
+            tx-id (str (java.util.UUID/randomUUID))
+            receipt {:tx_id tx-id :from from-id :to to-id :amount amount :note note }]
+          (do
+            (alter accounts (fn [accs]
                 (let [
-                  naccs (assoc accs 
-                      from_id (assoc from :balance (- (balance from ) amount))
-                      to_id (assoc to :balance (+ (balance to ) amount)))]
-                    naccs)
-        )))))
+                      naccs (assoc accs 
+                        from-id (assoc from :balance (- (balance from ) amount))
+                        to-id (assoc to :balance (+ (balance to ) amount)))]
+                    naccs )))
+            (alter transactions conj receipt)
+            receipt ))))
+    ; )
+
+  HistoricalAsset  
+    (find-transaction [_ tx-id]
+      (first (filter #(= tx-id (:tx_id %)) @transactions)))
+
+    (history
+      [this] @transactions)
+    (history [this a] 
+      (filter #( or 
+                  (= a (:from %)) 
+                  (= a (:to %))) 
+        @transactions ))
+  )
 
 (defn create-memory-asset 
   "Create a new in memory asset"
 
   ([url]
-    (create-memory-asset url {} "issuer" $)
-    )
-  ([url accounts issuer currency]
-    (MemoryAsset. url (atom accounts) issuer currency)))
+    (create-memory-asset url {} [] "issuer" $ ))
+  ([url accounts transactions issuer currency]
+    (MemoryAsset. url (ref accounts) (ref transactions) issuer currency)))
 

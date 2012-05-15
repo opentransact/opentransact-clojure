@@ -9,5 +9,10 @@
   (request [this params] "Request funds with given parameters and return url")
   (authorize [this params] "Authorize funds with given parameters and return url"))
 
+(defprotocol HistoricalAsset
+  (history [this] [this a] "Return transaction history")
+  (find-transaction [this tx-id] "Find a transaction by it's id")
+  )
+
 (defn asset-request [this params]
   (o/assoc-query-params (asset-url this) params))

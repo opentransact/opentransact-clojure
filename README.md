@@ -13,7 +13,7 @@ The Asset protocol contains the following 4 functions:
 - authorize creates a URL containing an [OpenTransact Transfer Authorization Request](http://www.opentransact.org/core.html#transfer-authorization)
 - transfer! performs an actual [OpenTransact Transfer](http://www.opentransact.org/core.html#transfer)
 
-We will implement a RemoteAsset client which performs this over http.
+We have a RemoteAsset client which performs this over http.
 
 However internal assets can be created adhearing to the same Asset protocol that can be wrapped in an OpenTransact Handler for Ring allowing you to create your own custom OpenTransact services.
 
@@ -40,11 +40,11 @@ Create an OpenTransact RemoteAsset asset type:
 
 ### Implementing your own OpenTransact asset.
 
-The plan is to have a handler:
+You create an asset handler by passing in an asset and a view handler to be displayed to the user for transfer-request and transfer-authorizations:
 
-    opentransact.server/ot-handler
+    (opentransact.server/asset-handler asset auth-view)
 
-This will require a backend that will implement the above transfer and authorize multimethods locally.
+This requires a backend that will implement the above transfer and authorize multimethods locally.
 
 ## License
 

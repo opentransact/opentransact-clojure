@@ -9,6 +9,9 @@
   (request [this params] "Request funds with given parameters and return url")
   (authorize [this params] "Authorize funds with given parameters and return url"))
 
+(defprotocol Authorizable
+  (authorize! [this params] "Authorize and hold funds"))
+
 (defprotocol HistoricalAsset
   (history [this] [this a] "Return transaction history")
   (find-transaction [this tx-id] "Find a transaction by it's id")

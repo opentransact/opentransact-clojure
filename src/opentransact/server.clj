@@ -27,7 +27,7 @@
 
   Authorizable
     (authorize! [this params]
-      (if (isa? asset Authorizable)
+      (if (extends? Authorizable (class asset)) ;; don't understand why isa? doesn't work
           (authorize! asset params)
           params
         )))
@@ -54,31 +54,36 @@
 
             (= :post (req :request-method))
               (if (:access-token req)
-                (let [ user ( :subject (:access-token req))]
+                (try
                   (if (:response_type params)
                     (if (= "code" (:response_type params))
-                      (if-let [client (c/fetch-client (:client_id params))]        
-                        (let [  user (:subject (:access-token req))
+
+                      (if-let [ client (c/fetch-client (:client_id params))]        
+
+                        (let [  user ( :subject (t/fetch-token (:access_token (req :session))))
                                 receipt (authorize! asset (assoc params :from (:login user)))
-                                code (ac/create-auth-code client user (:redirect_uri params) (asset-url asset) receipt)
-                                ]
-                          (end/authorization-response req {:code (:code code)}))
+                                code (ac/create-auth-code client user (:redirect_uri params) (asset-url asset) receipt)]
+                                
+                          (end/authorization-response req {:code (:code code) :tx_id (:tx_id receipt)}))
                           
-                        (end/authorization-error-response req "invalid_request")) 
+                        (end/authorization-error-response req "invalid_request"))
+
                       (end/authorization-error-response req "unsupported_response_type"))
-                    (try
-                      (let [receipt (transfer! asset (assoc params :from (:login user)))]
-                        (if-html req
-                          (end/authorization-response req {:tx_id (:tx_id receipt)})
-                          (content-type 
-                            (response 
-                              (generate-string receipt)) "application/json")))
-                      (catch Exception e 
-                        (if (= (.getMessage e) "Insufficient Funds")
-                          (status (response "Insufficient funds") 402)
-                          (throw e)))) ;; TODO don't just catch all exceptions
-                  ))
-                (status (response "Not allowed") 401))
+
+                    ;; Perform transfer
+                    (let [  user ( :subject (:access-token req)) 
+                            receipt (transfer! asset (assoc params :from (:login user)))]
+                      (if-html req
+                        (end/authorization-response req { :tx_id (:tx_id receipt) })
+                        (content-type 
+                          (response 
+                            (generate-string receipt)) "application/json"))))
+                (catch Exception e 
+                  (if (= (.getMessage e) "Insufficient Funds")
+                    (status (response "Insufficient funds") 402)
+                    (throw e)))) ;; TODO don't just catch all exceptions
+                (status (response "Not allowed") 401 ))
+
               
             (= :options (req :request-method))
               (response "GET,POST")

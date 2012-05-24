@@ -8,7 +8,8 @@
   (:require
         [clauth.client :as c]
         [clauth.token :as t]
-        [clauth.user :as u]))
+        [clauth.user :as u]
+        [clauth.auth-code :as ac]))
 
 
 (defn dummy-authview [req]
@@ -86,8 +87,15 @@
               (is (= 1.23M (balance (account asset "bob"))))
               (is (= (:from receipt) "john@example.com"))
               (is (= (:to receipt) "bob")))
-          ))
+          )))
 
+(let  [ url "http://test.com" 
+        asset (create-memory-asset url)
+        handler (asset-resource asset dummy-authview)]
+
+        (t/reset-token-store!)
+        (c/reset-client-store!)
+        (u/reset-user-store!)
 
         (deftest transfer-funds-after-request
           (let [ client (c/register-client)
@@ -107,14 +115,52 @@
               (is (= 402 (:status response)) "should fail due to lack of funds"))            
 
             (let [_ (transfer! asset { :from "issuer" :to "john@example.com" :amount 1.23M :note "Test payment" })
-                  response (handler (assoc-in request [:headers "authorization"] (str "Bearer " (:token token))))
-                  receipt (last (history asset)) ]
+                  response (handler request)
+                  receipt (last (history asset))]
 
               (is (= 302 (:status response)) "should be a redirect")
               (is (= 0.00M  (balance (account asset "john@example.com"))))
               (is (= 1.23M (balance (account asset "alice"))))
               (is (= (str "http://myshop.com/cart?tx_id=" (:tx_id receipt)) ((:headers response) "Location" )))
               )
-          ))
+          )))
 
-)
+(let  [ url "http://test.com" 
+        asset (create-memory-asset url)
+        handler (asset-resource asset dummy-authview)]
+
+        (t/reset-token-store!)
+        (c/reset-client-store!)
+        (u/reset-user-store!)
+
+        (deftest authorize-funds-after-request
+          (let [ client (c/register-client)
+                 user (u/register-user "john@example.com" "password")
+                 token (t/create-token (c/register-client) user)
+                 request {:request-method :post 
+                          :params { :response_type "code" :client_id (:client-id client) :to "carol" :amount "1.23" :note "Test payment" :redirect_uri "http://myshop.com/cart"}
+                          :session { :access_token (:token token)}
+                          :headers { "accept" "text/html" }}]
+
+
+
+            (let [response (handler (dissoc request :session))]
+              (is (= 401 (:status response)) "should require authentication"))
+
+            (let [response (handler request)]
+              (is (= 402 (:status response)) "should fail due to lack of funds"))            
+
+            (let [_ (transfer! asset { :from "issuer" :to "john@example.com" :amount 1.23M :note "Test payment" })
+                  response (handler request)
+                  receipt (last (history asset)) 
+                  code  (last (ac/auth-codes))]
+
+              (is (= 302 (:status response)) "should be a redirect")
+              (is (= 1.23M  (balance (account asset "john@example.com"))))
+              (is (= 0.00M  (available-balance (account asset "john@example.com"))))
+              (is (= 0.00M (balance (account asset "carol"))))
+              (is (= (str "http://myshop.com/cart?code=" (:code code) "&tx_id=" (:tx_id receipt)) ((:headers response) "Location" )))
+              )
+          )))
+
+

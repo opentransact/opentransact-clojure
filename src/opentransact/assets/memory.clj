@@ -36,7 +36,7 @@
   [asset]
   (- (balance (issuer-account asset))))
 
-(defrecord MemoryReserve [asset tx-id from to amount note]
+(defrecord MemoryReserve [asset tx_id from to amount note]
   Asset
     (asset-url [_] (asset-url asset))
     (request [this params]
@@ -53,7 +53,7 @@
             tx-from (account asset from  )
             tx-to (account asset (or to-id to ))
             new-tx-id (str (java.util.UUID/randomUUID))
-            receipt {:tx_id new-tx-id :from (:id tx-from) :to (:id tx-to) :amount tx-amount :note (or tx-note note) :type :transfer :reserved tx-id }]
+            receipt {:tx_id new-tx-id :from (:id tx-from) :to (:id tx-to) :amount tx-amount :note (or tx-note note) :type :transfer :reserved tx_id }]
           (if (>= amount tx-amount)
             (do
               (alter (.accounts asset) (fn [accs]

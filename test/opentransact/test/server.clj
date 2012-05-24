@@ -86,8 +86,35 @@
               (is (= 1.23M (balance (account asset "bob"))))
               (is (= (:from receipt) "john@example.com"))
               (is (= (:to receipt) "bob")))
+          ))
 
 
+        (deftest transfer-funds-after-request
+          (let [ client (c/register-client)
+                 user (u/register-user "john@example.com" "password")
+                 token (t/create-token client user)
+                 request {:request-method :post 
+                          :params { :to "alice" :amount "1.23" :note "Test payment" :redirect_uri "http://myshop.com/cart"}
+                          :session { :access_token (:token token)}
+                          :headers { "accept" "text/html" }}]
+
+
+
+            (let [response (handler (dissoc request :session))]
+              (is (= 401 (:status response)) "should require authentication"))
+
+            (let [response (handler request)]
+              (is (= 402 (:status response)) "should fail due to lack of funds"))            
+
+            (let [_ (transfer! asset { :from "issuer" :to "john@example.com" :amount 1.23M :note "Test payment" })
+                  response (handler (assoc-in request [:headers "authorization"] (str "Bearer " (:token token))))
+                  receipt (last (history asset)) ]
+
+              (is (= 302 (:status response)) "should be a redirect")
+              (is (= 0.00M  (balance (account asset "john@example.com"))))
+              (is (= 1.23M (balance (account asset "alice"))))
+              (is (= (str "http://myshop.com/cart?tx_id=" (:tx_id receipt)) ((:headers response) "Location" )))
+              )
           ))
 
 )

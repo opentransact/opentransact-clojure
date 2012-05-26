@@ -1,5 +1,6 @@
 (ns opentransact.core
-  (:use [hiccup.util :only [url-encode]])
+  (:use [hiccup.util :only [url-encode]]
+        [slingshot.slingshot :only [throw+ try+]])
   (:require [oauthentic.core :as o]))
 
 
@@ -19,3 +20,17 @@
 
 (defn asset-request [this params]
   (o/assoc-query-params (asset-url this) params))
+
+
+;; Errors
+(defn insufficient-funds!
+  "Throw exception for insufficient funds"
+  [] (throw+ {:type ::insufficient-funds }))
+
+(defn not-allowed!
+  "Throw exception for insufficient funds"
+  [] (throw+ {:type ::not-allowed }))
+
+(defn invalid-request!
+  "Throw exception for insufficient funds"
+  [] (throw+ {:type ::invalid-request }))

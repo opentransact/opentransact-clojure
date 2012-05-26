@@ -1,7 +1,8 @@
 (ns opentransact.test.assets.memory
   (:use [opentransact.core]
         [opentransact.assets.memory ]
-        [bux.currencies :only [$]])
+        [bux.currencies :only [$]]
+        [slingshot.slingshot :only [throw+ try+]])
   (:use [clojure.test]))
 
   (let  [ url "http://test.com"]
@@ -40,10 +41,10 @@
       (is (= (history asset "issuer") [receipt] ))
       (is (= (history asset "alice") [] ))
 
-      (try
+      (try+
         (transfer! asset { :from "alice" :to "bob" :amount 1.23M :note "Test payment" })
         (is false "could transfer funds below balance")
-        (catch Exception e
+        (catch [:type :opentransact.core/insufficient-funds] _
           (is true "could not transfer funds")
           )
         )
@@ -72,10 +73,10 @@
       (is (= (history asset "issuer") [reserve] ))
       (is (= (history asset "alice") [] ))
 
-      (try
+      (try+
         (transfer! asset { :from "bob" :to "alice" :amount 1.23M :note "Test payment" })
         (is false "could transfer funds below balance")
-        (catch Exception e
+        (catch [:type :opentransact.core/insufficient-funds] _
           (is true "could not transfer funds")
           )
         )

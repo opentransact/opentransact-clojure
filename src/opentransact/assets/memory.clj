@@ -1,8 +1,8 @@
 (ns opentransact.assets.memory
   (:use  [opentransact.core]
          [bux.currency]
-         [bux.currencies :only [$]]))
-
+         [bux.currencies :only [$]]
+         [slingshot.slingshot :only [throw+ try+]]))
 
 (defn account 
   "returns the account for given id"
@@ -65,7 +65,7 @@
                       naccs )))
               (alter (.transactions asset) conj receipt)
               receipt )
-            (throw (Exception. "Insufficient Funds"))
+            (insufficient-funds!)
             )))))
 
 (deftype MemoryAsset 
@@ -101,7 +101,7 @@
                       naccs )))
               (alter transactions conj receipt)
               receipt )
-            (throw (Exception. "Insufficient Funds"))
+            (insufficient-funds!)
             ))))
     ; )
   Authorizable
@@ -127,7 +127,7 @@
                       naccs )))
               (alter transactions conj receipt)
               receipt )
-            (throw (Exception. "Insufficient Funds"))
+            (insufficient-funds!)
             ))))
   HistoricalAsset  
     (find-transaction [_ tx-id]

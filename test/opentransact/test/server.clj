@@ -160,7 +160,35 @@
               (is (= 0.00M  (available-balance (account asset "john@example.com"))))
               (is (= 0.00M (balance (account asset "carol"))))
               (is (= (str "http://myshop.com/cart?code=" (:code code) "&tx_id=" (:tx_id receipt)) ((:headers response) "Location" )))
-              )
-          )))
+
+
+              ;; Charge authorization
+              (let [ _ (ac/revoke-auth-code! code)                  
+                     token (t/create-token client (:subject code) (:scope code) (:object code))
+                     request {:request-method :post 
+                              :params { }
+                              :headers { "accept" "application/json" }}]
+
+
+                (let [response (handler request)]
+                  (is (= 401 (:status response)) "should require authentication")
+                  )
+
+                (let [response (handler (assoc-in request [:headers "authorization"] (str "Bearer " (:token (t/create-token (c/register-client) user)))))]
+                  (is (= 402 (:status response)) "should fail if using other token")
+                  )
+
+                (let [response (handler (assoc-in request [:headers "authorization"] (str "Bearer " (:token token))))
+                      receipt (parse-string (:body response) true)]
+
+                  (is (= 200 (:status response)) "should be a success")
+                  (is (= 0.00M  (balance (account asset "john@example.com"))))
+                  (is (= 1.23M (balance (account asset "carol"))))
+                  (is (= (:from receipt) "john@example.com"))
+                  (is (= (:to receipt) "carol")))
+              )))
+
+
+          ))
 
 

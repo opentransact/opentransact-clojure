@@ -10,6 +10,7 @@
                   [clj-time "0.3.7"]
                   [hiccup "1.0.0"]
                   [clj-http "0.4.1"]
-                  [oauthentic "0.0.4"]]
+                  [oauthentic "0.0.4"]
+                  [slingshot "0.10.2"]]
   :dev-dependencies 
                   [[clj-http-fake "0.3.0"]])

@@ -2,9 +2,21 @@
 
 Clojure library for interacting with and creating [OpenTransact](http://opentransact.org) assets.
 
+This is under heavy development right now and does therefore not have a stable API yet.
+
+## Install
+
+Add the following dependency to your `project.clj` file:
+
+```clojure
+[opentransact "0.0.1"]
+```
+
 ## Usage
 
-    (use 'opentransact.core)
+```clojure
+(use 'opentransact.core)
+```
 
 The Asset protocol contains the following 4 functions:
 
@@ -19,30 +31,39 @@ However internal assets can be created adhearing to the same Asset protocol that
 
 Transfer directly:
 
-    (transfer asset {:to "AAAA" :amount 20M :note "For tomatos"})
-    => {:xid "http://asset.com/transactions/123123123" :from "BBBB" :to "AAAA" :amount 20M :note "For tomatos"}
+```clojure
+(transfer asset {:to "AAAA" :amount 20M :note "For tomatos"})
+=> {:xid "http://asset.com/transactions/123123123" :from "BBBB" :to "AAAA" :amount 20M :note "For tomatos"}
+```
 
 Create a Transfer Request for a html link or redirection:
 
-    (request asset {:to "AAAA" :amount 20M :note "For tomatos"})
-    => "http://asset.com/usd?to=AAAA&amount=20&note=For%20tomatos"
-
+```clojure
+(request asset {:to "AAAA" :amount 20M :note "For tomatos"})
+=> "http://asset.com/usd?to=AAAA&amount=20&note=For%20tomatos"
+```
 
 Create a Transfer Authorization Request for a html link or redirection:
 
-    (authorize asset {:to "AAAA" :amount 20M :note "For tomatos"})
-    => "http://asset.com/usd?to=AAAA&amount=20&note=For%20tomatos&client_id=abcdefg"
+```clojure
+(authorize asset {:to "AAAA" :amount 20M :note "For tomatos"})
+=> "http://asset.com/usd?to=AAAA&amount=20&note=For%20tomatos&client_id=abcdefg"
+```
 
 Create an OpenTransact RemoteAsset asset type:
   
-    (use 'opentransact.client)
-    (def asset (ot-asset "http://asset.com/usd" { :client-id "abcdefg" :client-secret "ssh" :token "my-oauth-token" :token-url "http://asset.com/token"}))
+```clojure
+(use 'opentransact.client)
+(def asset (ot-asset "http://asset.com/usd" { :client-id "abcdefg" :client-secret "ssh" :token "my-oauth-token" :token-url "http://asset.com/token"}))
+```
 
 ### Implementing your own OpenTransact asset.
 
 You create an asset handler by passing in an asset and a view handler to be displayed to the user for transfer-request and transfer-authorizations:
 
-    (opentransact.server/asset-handler asset auth-view)
+```clojure
+(opentransact.server/asset-handler asset auth-view)
+```
 
 This requires a backend that will implement the above transfer and authorize multimethods locally.
 
